@@ -16,22 +16,39 @@ public class Simulacao {
         janelaSimulacao = new JanelaSimulacao(mapa);
     }
     
-    public void executarSimulacao(Posicao origem, Posicao destino){
-        jogador.setPosicaoOrigem(origem);//Define a posicao origem do jogador
-        jogador.setPosicaoDestino(destino);//Define a posicao destino do jogador
-        mapa.adicionarItem(jogador);//Inicializando o mapa com o jogador
-        janelaSimulacao.executarAcao();
-        List<Posicao> caminho = mapa.encontrarCaminho(jogador.getPosicaoOrigem(), jogador.getPosicaoDestino());
-        if (caminho != null) {
-            for (int i = 0; i < caminho.size(); i++) {
+    /**
+     * Exibe o percurso encontrado. Se o percurso estiver vazio, informa a
+     * falha e preserva o estado da simulação.
+     *
+     * @param origem posição inicial
+     * @param destino posição final
+     * @throws NullPointerException se a origem ou o destino for nulo
+     */
+    public void executarSimulacao(Posicao origem, Posicao destino) {
+        List<Posicao> caminho = mapa.encontrarCaminho(origem, destino);
+        if (caminho.isEmpty()) {
+            System.out.println("Não foi possível encontrar um caminho para o destino.");
+            return;
+        }
+
+        jogador.setPosicaoOrigem(origem);
+        jogador.setPosicaoDestino(destino);
+        mapa.adicionarItem(jogador);
+        try {
+            janelaSimulacao.executarAcao();
+            for (int i = 1; i < caminho.size(); i++) {
                 executarUmPasso(caminho.get(i));
                 esperar(100);
             }
+        } finally {
             mapa.removerItem(jogador);
-        }else{
-            System.out.println("Não foi possível encontrar um caminho para o destino.");
         }
-        System.out.println("Movimentação concluída.");
+
+        if (caminho.size() == 1) {
+            System.out.println("O jogador já está no destino.");
+        } else {
+            System.out.println("Movimentação concluída.");
+        }
     }
 
     private void executarUmPasso(Posicao proximaLocalizacao) {

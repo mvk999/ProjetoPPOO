@@ -189,17 +189,18 @@ public class Mapa {
             && y >= 0 && y < altura;
     }
 
-    public List<Posicao> encontrarCaminho(
-            Posicao origem,
-            Posicao destino) {
-
-        HeuristicaAEstrela heuristica =
-            new HeuristicaAEstrela(this);
-
-        return heuristica.encontrarCaminho(
-            origem,
-            destino
-        );
+    /**
+     * Busca o menor percurso usando as células transitáveis deste mapa.
+     *
+     * @param origem posição inicial
+     * @param destino posição final
+     * @return percurso incluindo origem e destino, ou uma lista vazia se
+     *         algum extremo não for transitável ou se não houver caminho
+     * @throws NullPointerException se a origem ou o destino for nulo
+     * @see HeuristicaAEstrela#encontrarCaminho(Posicao, Posicao)
+     */
+    public List<Posicao> encontrarCaminho(Posicao origem, Posicao destino) {
+        return new HeuristicaAEstrela(this).encontrarCaminho(origem, destino);
     }
     
 }

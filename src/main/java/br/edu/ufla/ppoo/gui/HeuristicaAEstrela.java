@@ -7,29 +7,56 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Set;
 
+/**
+ * Encontra percursos mínimos no mapa com busca A* e movimentos ortogonais
+ * de custo unitário.
+ */
 public class HeuristicaAEstrela {
-    private Mapa mapa;
+    private static final Comparator<No> POR_CUSTO_TOTAL = new Comparator<No>() {
+        @Override
+        public int compare(No primeiro, No segundo) {
+            return Integer.compare(primeiro.getCustoF(), segundo.getCustoF());
+        }
+    };
 
+    private final Mapa mapa;
+
+    /**
+     * Prepara a busca para consultar as células transitáveis do mapa.
+     *
+     * @param mapa mapa usado na busca
+     * @throws NullPointerException se o mapa for nulo
+     */
     public HeuristicaAEstrela(Mapa mapa) {
-        this.mapa = mapa;
+        this.mapa = Objects.requireNonNull(mapa, "O mapa é obrigatório.");
     }
 
-    public List<Posicao> encontrarCaminho(
-            Posicao origem,
-            Posicao destino) {
+    /**
+     * Busca o menor percurso entre duas posições.
+     *
+     * @param origem posição inicial
+     * @param destino posição final
+     * @return percurso incluindo origem e destino, ou uma lista vazia se algum
+     *         extremo não for transitável ou se não houver caminho. Quando
+     *         origem e destino coincidem em uma célula transitável, devolve
+     *         um percurso com apenas essa posição.
+     * @throws NullPointerException se a origem ou o destino for nulo
+     */
+    public List<Posicao> encontrarCaminho(Posicao origem, Posicao destino) {
+        Objects.requireNonNull(origem, "A origem é obrigatória.");
+        Objects.requireNonNull(destino, "O destino é obrigatório.");
+        if (!mapa.podePassar(origem.getX(), origem.getY())
+                || !mapa.podePassar(destino.getX(), destino.getY())) {
+            return Collections.<Posicao>emptyList();
+        }
 
-        PriorityQueue<No> abertos =
-                new PriorityQueue<>(
-                    Comparator.comparingInt(No::getCustoF)
-                );
-
-        Set<Posicao> fechados = new HashSet<>();
-
-        Map<Posicao, Integer> melhoresCustos =
-                new HashMap<>();
+        PriorityQueue<No> abertos = new PriorityQueue<No>(POR_CUSTO_TOTAL);
+        Set<Posicao> fechados = new HashSet<Posicao>();
+        Map<Posicao, Integer> melhoresCustos = new HashMap<Posicao, Integer>();
 
         No noInicial = new No(
             origem,
@@ -42,24 +69,24 @@ public class HeuristicaAEstrela {
         melhoresCustos.put(origem, 0);
         
         while (!abertos.isEmpty()) {
-            No atual = abertos.poll();
+            No atual = abertos.remove();
 
             Posicao posicaoAtual = atual.getPosicao();
 
+            // A fila pode conter mais de um nó para a mesma posição.
+            if (!fechados.add(posicaoAtual)) {
+                continue;
+            }
             if (posicaoAtual.equals(destino)) {
                 return reconstruirCaminho(atual);
             }
 
-            fechados.add(posicaoAtual);
-
+            int novoCustoG = atual.getCustoG() + 1;
             for (Posicao vizinho : obterVizinhos(posicaoAtual)) {
 
                 if (fechados.contains(vizinho)) {
                     continue;
                 }
-
-                int novoCustoG =
-                    atual.getCustoG() + 1;
 
                 Integer melhorCusto =
                     melhoresCustos.get(vizinho);
@@ -90,13 +117,12 @@ public class HeuristicaAEstrela {
             }
         }
 
-        // Não existe caminho
-        return Collections.emptyList();
+        return Collections.<Posicao>emptyList();
     }
 
     private List<Posicao> reconstruirCaminho(No no) {
 
-        List<Posicao> caminho = new ArrayList<>();
+        List<Posicao> caminho = new ArrayList<Posicao>();
 
         while (no != null) {
             caminho.add(no.getPosicao());
@@ -119,7 +145,7 @@ public class HeuristicaAEstrela {
     private List<Posicao> obterVizinhos(
             Posicao posicao) {
 
-        List<Posicao> vizinhos = new ArrayList<>();
+        List<Posicao> vizinhos = new ArrayList<Posicao>();
 
         int x = posicao.getX();
         int y = posicao.getY();
