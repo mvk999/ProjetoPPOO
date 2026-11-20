@@ -4,7 +4,9 @@ import java.time.Duration;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -22,7 +24,7 @@ class HeuristicaAEstrelaTest {
     private static final Posicao PAREDE = new Posicao(7, 1);
     private static final Posicao FORA_DO_MAPA = new Posicao(-1, 1);
     private static final int[][] PASSOS_ORTOGONAIS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-    private static final Mapa MAPA = new Mapa();
+    private static final Mapa MAPA = CenarioDemonstracao.mapa();
     private static final HeuristicaAEstrela BUSCA = new HeuristicaAEstrela(MAPA);
 
     @BeforeAll
@@ -34,18 +36,14 @@ class HeuristicaAEstrelaTest {
 
     @Test
     void contornaParedeEmQuatroPassosOrtogonalmente() {
-        List<Posicao> percurso = MAPA.encontrarCaminho(ORIGEM, DESTINO);
+        List<Posicao> percurso = BUSCA.encontrarCaminho(ORIGEM, DESTINO);
 
         verificarPercurso(MAPA, percurso, ORIGEM, DESTINO, 4);
     }
 
     @Test
     void encontraCustosMinimosEntreAsReferenciasDaCasa() {
-        Posicao[] referencias = {
-            new Posicao(4, 2), new Posicao(16, 2), new Posicao(4, 6),
-            new Posicao(16, 6), new Posicao(4, 10), new Posicao(16, 10),
-            new Posicao(4, 14), new Posicao(16, 14), new Posicao(9, 6)
-        };
+        List<Posicao> referencias = List.<Posicao>copyOf(CenarioDemonstracao.referencias().values());
 
         for (Posicao origem : referencias) {
             int[][] distancias = calcularDistanciasPorBuscaEmLargura(MAPA, origem);
@@ -76,19 +74,21 @@ class HeuristicaAEstrelaTest {
 
     @Test
     void terminaSemPercursoEntreDuasRegioesDesconectadas() {
-        Mapa mapaDividido = new Mapa() {
-            @Override
-            public boolean podePassar(int x, int y) {
-                return x != PAREDE.getX() && super.podePassar(x, y);
-            }
-        };
-        assertTrue(mapaDividido.podePassar(ORIGEM.getX(), ORIGEM.getY()));
-        assertTrue(mapaDividido.podePassar(DESTINO.getX(), DESTINO.getY()));
+        // O destino no canto está isolado. Ao redor da parede interna,
+        // há desvios de comprimentos diferentes para uma mesma célula.
+        Mapa mapaDividido = new Mapa(4, 4,
+                Set.<Posicao>of(new Posicao(1, 0), new Posicao(0, 1), new Posicao(2, 2)),
+                Map.<Posicao, String>of());
+        Posicao origem = new Posicao(2, 3);
+        Posicao destino = new Posicao(0, 0);
+        assertTrue(mapaDividido.podePassar(origem.getX(), origem.getY()));
+        assertTrue(mapaDividido.podePassar(destino.getX(), destino.getY()));
 
         assertTimeoutPreemptively(Duration.ofSeconds(3), new Executable() {
             @Override
             public void execute() {
-                assertTrue(mapaDividido.encontrarCaminho(ORIGEM, DESTINO).isEmpty());
+                HeuristicaAEstrela busca = new HeuristicaAEstrela(mapaDividido);
+                assertTrue(busca.encontrarCaminho(origem, destino).isEmpty());
             }
         });
     }

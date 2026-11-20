@@ -1,36 +1,34 @@
 package br.edu.ufla.ppoo.gui;
 
-import java.util.HashMap;
+import java.util.Map;
+
 /**
+ * Inicia a demonstração dos percursos no cenário fornecido.
  *
  * @author Luiz Merschmann
  */
-public class Principal {
+public final class Principal {
+    private Principal() {
+    }
 
+    /**
+     * Exibe um percurso entre cada par de ambientes distintos.
+     *
+     * @param args argumentos do programa, ignorados pela demonstração
+     */
     public static void main(String[] args) {
-        HashMap<String, Posicao> referencias = new HashMap<>();
-        referencias.put("Quarto 1", new Posicao(4, 2));
-        referencias.put("Quarto 2", new Posicao(16, 2));
-        referencias.put("WC 1", new Posicao(4, 6));
-        referencias.put("WC 2", new Posicao(16, 6));
-        referencias.put("Sala de Jantar", new Posicao(4, 10));
-        referencias.put("Cozinha", new Posicao(16, 10));
-        referencias.put("Sala de TV", new Posicao(4, 14));
-        referencias.put("Área de Serviço", new Posicao(16, 14));
-        referencias.put("Corredor", new Posicao(9, 6));
-        Simulacao sim = new Simulacao();
-        
-        
-        for(String origem: referencias.keySet()){
-            for(String destino: referencias.keySet()){
-                if(!origem.equals(destino)){
-                    System.out.println("Origem: " + origem + "\tDestino: " + destino);
+        Map<String, Posicao> referencias = CenarioDemonstracao.referencias();
+        Simulacao simulacao = new Simulacao();
+
+        for (Map.Entry<String, Posicao> origem : referencias.entrySet()) {
+            for (Map.Entry<String, Posicao> destino : referencias.entrySet()) {
+                if (!origem.getKey().equals(destino.getKey())) {
+                    System.out.println("Origem: " + origem.getKey() + "\tDestino: " + destino.getKey());
                     System.out.println("Procurando o caminho ...");
-                    sim.executarSimulacao(referencias.get(origem),referencias.get(destino));
+                    simulacao.executarSimulacao(origem.getValue(), destino.getValue());
                 }
-            }    
+            }
         }
         System.out.println("Simulação concluída.");
-
     }
 }
