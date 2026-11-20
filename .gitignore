@@ -1,0 +1,18 @@
+# Saidas de compilacao
+/target/
+*.class
+
+# Configuracoes locais de IDE
+/.idea/
+*.iml
+/.classpath
+/.project
+/.settings/
+/.vscode/
+/nbproject/private/
+
+# Arquivos locais e temporarios
+*.log
+*.tmp
+Thumbs.db
+.DS_Store
