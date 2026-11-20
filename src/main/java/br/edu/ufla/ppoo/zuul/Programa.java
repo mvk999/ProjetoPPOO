@@ -37,9 +37,24 @@ public final class Programa {
             System.out.print("> ");
             System.out.flush();
             String linha = entrada.readLine();
-            if (linha == null || jogo.processarComando(analisador.interpretar(linha))) {
+            if (linha == null) {
+                return;
+            }
+
+            Comando comando = analisador.interpretar(linha);
+            if (Comando.AJUDA.equals(comando.getPalavraDeComando())) {
+                imprimirAjuda(analisador.consultarAjuda());
+            } else if (jogo.processarComando(comando)) {
                 return;
             }
         }
+    }
+
+    private static void imprimirAjuda(String palavrasAceitas) {
+        System.out.println("Voce esta perdido. Voce esta sozinho. Voce caminha");
+        System.out.println("pela universidade.");
+        System.out.println();
+        System.out.println("Suas palavras de comando sao:");
+        System.out.println("   " + palavrasAceitas);
     }
 }

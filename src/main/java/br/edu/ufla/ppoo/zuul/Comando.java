@@ -7,6 +7,13 @@ package br.edu.ufla.ppoo.zuul;
  * @version 2011.07.31 (2016.02.01)
  */
 public final class Comando {
+    /** Palavra que solicita deslocamento. */
+    static final String IR = "ir";
+    /** Palavra que solicita o encerramento da sessão. */
+    static final String SAIR = "sair";
+    /** Palavra que solicita a lista de comandos. */
+    static final String AJUDA = "ajuda";
+
     private final String palavra;
     private final String argumento;
 

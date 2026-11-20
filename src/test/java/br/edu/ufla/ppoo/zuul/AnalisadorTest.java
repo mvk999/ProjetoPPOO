@@ -1,5 +1,8 @@
 package br.edu.ufla.ppoo.zuul;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -13,6 +16,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AnalisadorTest {
     private final Analisador analisador = new Analisador();
+
+    @Test
+    void ajudaListaTodosOsComandosDaBaseSemAnunciarPalavrasInvalidas() {
+        List<String> anunciados = Arrays.<String>asList(analisador.consultarAjuda().split(" "));
+        assertEquals(List.<String>of("ir", "sair", "ajuda"), anunciados);
+
+        for (String palavra : anunciados) {
+            Comando comando = analisador.interpretar(palavra);
+            assertFalse(comando.ehDesconhecido(), palavra);
+            assertEquals(palavra, comando.getPalavraDeComando());
+        }
+    }
 
     @Test
     void preservaNomeCompostoComoUmUnicoArgumento() {

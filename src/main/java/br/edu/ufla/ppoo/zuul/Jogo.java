@@ -39,67 +39,37 @@ public class Jogo {
      * Apresenta a mensagem de boas-vindas e o ambiente inicial.
      */
     void iniciar() {
-        imprimirBoasVindas();
-    }
-
-    /**
-     * Imprime a mensagem de abertura para o jogador.
-     */
-    private void imprimirBoasVindas()
-    {
         System.out.println();
         System.out.println("Bem-vindo ao World of Zuul!");
         System.out.println("World of Zuul eh um novo jogo de aventura, incrivelmente chato.");
-        System.out.println("Digite 'ajuda' se voce precisar de ajuda.");
+        System.out.println("Digite '" + Comando.AJUDA + "' se voce precisar de ajuda.");
         System.out.println();
-        
+        imprimirAmbienteAtual();
+    }
+
+    private void imprimirAmbienteAtual() {
         System.out.println("Voce esta " + ambienteAtual.getDescricao());
-    
         System.out.println("Saidas: " + String.join(" ", ambienteAtual.listarSaidas()));
     }
 
     /**
-     * Executa um comando já interpretado.
+     * Executa um comando do jogo já interpretado. A apresentação da ajuda
+     * cabe ao ponto de entrada.
      *
      * @param comando ação recebida do analisador
      * @return {@code true} se o comando encerra a sessão
      */
     boolean processarComando(Comando comando) {
-        boolean querSair = false;
-
-        if(comando.ehDesconhecido()) {
-            System.out.println("Eu nao entendi o que voce disse...");
+        String palavra = comando.getPalavraDeComando();
+        if (Comando.IR.equals(palavra)) {
+            irParaAmbiente(comando);
             return false;
         }
-
-        String palavraDeComando = comando.getPalavraDeComando();
-        if (palavraDeComando.equals("ajuda")) {
-            imprimirAjuda();
+        if (Comando.SAIR.equals(palavra)) {
+            return sair(comando);
         }
-        else if (palavraDeComando.equals("ir")) {
-            irParaAmbiente(comando);
-        }
-        else if (palavraDeComando.equals("sair")) {
-            querSair = sair(comando);
-        }
-
-        return querSair;
-    }
-
-    // Implementacoes dos comandos do usuario
-
-    /**
-     * Printe informacoes de ajuda.
-     * Aqui nos imprimimos algo bobo e enigmatico e a lista de 
-     * palavras de comando
-     */
-    private void imprimirAjuda() 
-    {
-        System.out.println("Voce esta perdido. Voce esta sozinho. Voce caminha");
-        System.out.println("pela universidade.");
-        System.out.println();
-        System.out.println("Suas palavras de comando sao:");
-        System.out.println("   ir sair ajuda");
+        System.out.println("Eu nao entendi o que voce disse...");
+        return false;
     }
 
     /** 
@@ -120,8 +90,7 @@ public class Jogo {
         }
 
         ambienteAtual = proximoAmbiente;
-        System.out.println("Voce esta " + ambienteAtual.getDescricao());
-        System.out.println("Saidas: " + String.join(" ", ambienteAtual.listarSaidas()));
+        imprimirAmbienteAtual();
     }
 
     /** 

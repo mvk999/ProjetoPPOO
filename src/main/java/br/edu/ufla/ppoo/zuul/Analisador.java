@@ -1,5 +1,8 @@
 package br.edu.ufla.ppoo.zuul;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -11,14 +14,17 @@ import java.util.regex.Pattern;
  */
 public final class Analisador {
     private static final Pattern SEPARADOR = Pattern.compile("\\p{javaWhitespace}+");
-
-    private final PalavrasComando palavrasDeComando;
+    private final Map<String, String> vocabulario;
 
     /**
      * Cria um analisador com o vocabulário de comandos da base.
      */
     public Analisador() {
-        palavrasDeComando = new PalavrasComando();
+        Map<String, String> comandos = new LinkedHashMap<String, String>();
+        comandos.put(Comando.IR, Comando.IR);
+        comandos.put(Comando.SAIR, Comando.SAIR);
+        comandos.put(Comando.AJUDA, Comando.AJUDA);
+        vocabulario = Collections.<String, String>unmodifiableMap(comandos);
     }
 
     /**
@@ -35,11 +41,17 @@ public final class Analisador {
     public Comando interpretar(String texto) {
         String linha = Objects.requireNonNull(texto, "O texto do comando é obrigatório.").strip();
         String[] partes = SEPARADOR.split(linha, 2);
-        String palavra = partes[0];
+        String palavra = vocabulario.get(partes[0]);
         String argumento = partes.length == 2 ? partes[1] : null;
-        if (!palavrasDeComando.ehComando(palavra)) {
-            palavra = null;
-        }
         return new Comando(palavra, argumento);
+    }
+
+    /**
+     * Lista as palavras de comando que o jogador pode digitar.
+     *
+     * @return palavras aceitas, separadas por espaço e na ordem de cadastro
+     */
+    public String consultarAjuda() {
+        return String.join(" ", vocabulario.keySet());
     }
 }

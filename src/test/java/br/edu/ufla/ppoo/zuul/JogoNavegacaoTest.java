@@ -2,6 +2,7 @@ package br.edu.ufla.ppoo.zuul;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.api.parallel.Resources;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ResourceLock(Resources.SYSTEM_OUT)
 @ResourceLock("java.lang.System.in")
@@ -79,18 +81,83 @@ class JogoNavegacaoTest {
         assertEquals(List.<String>of(FORA, SAIDAS_DE_FORA, ENCERRAMENTO), jogarTexto(""));
     }
 
+    @Test
+    void ajudaExibeOVocabularioEPermiteContinuarNoMesmoAmbiente() {
+        List<String> eventos = jogar("ir sul", "ajuda", "ir norte", "sair");
+
+        assertEquals(List.<String>of(
+                FORA, SAIDAS_DE_FORA,
+                LABORATORIO, SAIDAS_DO_LABORATORIO,
+                "Voce esta perdido. Voce esta sozinho. Voce caminha", "pela universidade.",
+                "Suas palavras de comando sao:", "   " + new Analisador().consultarAjuda(),
+                FORA, SAIDAS_DE_FORA,
+                ENCERRAMENTO), eventos);
+    }
+
+    @Test
+    void rejeitaSaidaComArgumentoEComandoDesconhecidoAntesDeContinuar() {
+        List<String> eventos = jogar("sair agora", "comando-inexistente", "ir sul", "sair");
+
+        assertEquals(List.<String>of(
+                FORA, SAIDAS_DE_FORA,
+                "Sair o que?", "Eu nao entendi o que voce disse...",
+                LABORATORIO, SAIDAS_DO_LABORATORIO,
+                ENCERRAMENTO), eventos);
+    }
+
+    @Test
+    @ResourceLock(Resources.SYSTEM_ERR)
+    void informaFalhaDeLeituraEEncerraASessao() {
+        InputStream entradaComFalha = new InputStream() {
+            @Override
+            public int read() throws IOException {
+                throw new IOException("Falha simulada na entrada");
+            }
+        };
+        PrintStream erroOriginal = System.err;
+        ByteArrayOutputStream erros = new ByteArrayOutputStream();
+
+        try (PrintStream captura = new PrintStream(erros, true, StandardCharsets.UTF_8)) {
+            System.setErr(captura);
+            String saida = executarPrograma(entradaComFalha);
+            assertTrue(saida.stripTrailing().endsWith(ENCERRAMENTO));
+            assertEquals("Não foi possível ler os comandos do terminal.",
+                    erros.toString(StandardCharsets.UTF_8).strip());
+        } finally {
+            System.setErr(erroOriginal);
+        }
+    }
+
     private static List<String> jogar(String... comandos) {
         return jogarTexto(String.join("\n", comandos) + "\n");
     }
 
     private static List<String> jogarTexto(String texto) {
+        byte[] entrada = texto.getBytes(StandardCharsets.UTF_8);
+        String saida = executarPrograma(new ByteArrayInputStream(entrada));
+
+        List<String> eventos = new ArrayList<String>();
+        for (String linha : saida.split("\\R")) {
+            String mensagem = linha.startsWith("> ") ? linha.substring(2) : linha;
+            if (mensagem.startsWith("Voce esta ") || mensagem.startsWith("Saidas: ")
+                    || mensagem.equals("Ir pra onde?") || mensagem.equals("Nao ha passagem!")
+                    || mensagem.equals("pela universidade.")
+                    || mensagem.equals("Suas palavras de comando sao:") || mensagem.startsWith("   ")
+                    || mensagem.equals("Sair o que?") || mensagem.equals("Eu nao entendi o que voce disse...")
+                    || mensagem.equals(ENCERRAMENTO)) {
+                eventos.add(mensagem.stripTrailing());
+            }
+        }
+        return eventos;
+    }
+
+    private static String executarPrograma(InputStream entrada) {
         InputStream entradaOriginal = System.in;
         PrintStream saidaOriginal = System.out;
-        byte[] entrada = texto.getBytes(StandardCharsets.UTF_8);
         ByteArrayOutputStream saida = new ByteArrayOutputStream();
 
         try (PrintStream captura = new PrintStream(saida, true, StandardCharsets.UTF_8)) {
-            System.setIn(new ByteArrayInputStream(entrada));
+            System.setIn(entrada);
             System.setOut(captura);
             Programa.main(new String[0]);
         } finally {
@@ -98,15 +165,6 @@ class JogoNavegacaoTest {
             System.setOut(saidaOriginal);
         }
 
-        List<String> eventos = new ArrayList<String>();
-        for (String linha : saida.toString(StandardCharsets.UTF_8).split("\\R")) {
-            String mensagem = linha.startsWith("> ") ? linha.substring(2) : linha;
-            if (mensagem.startsWith("Voce esta ") || mensagem.startsWith("Saidas: ")
-                    || mensagem.equals("Ir pra onde?") || mensagem.equals("Nao ha passagem!")
-                    || mensagem.equals(ENCERRAMENTO)) {
-                eventos.add(mensagem.stripTrailing());
-            }
-        }
-        return eventos;
+        return saida.toString(StandardCharsets.UTF_8);
     }
 }
