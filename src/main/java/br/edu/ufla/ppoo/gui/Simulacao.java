@@ -1,60 +1,108 @@
 package br.edu.ufla.ppoo.gui;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.function.Consumer;
+import javax.swing.SwingUtilities;
 
 /**
- * Coordena a busca do percurso e a exibição de seus quadros.
+ * Coordena a busca e a animação dos percursos da demonstração.
  *
  * @author David J. Barnes and Michael Kolling and Luiz Merschmann
  */
-public class Simulacao {
-    private static final int INTERVALO_ENTRE_PASSOS_MS = 100;
+public final class Simulacao {
     private final HeuristicaAEstrela busca;
     private final JanelaSimulacao janelaSimulacao;
+    private final AnimacaoMapa animacao;
+    private CompletableFuture<Boolean> percursoEmAndamento = null;
 
     /**
-     * Prepara a busca e a janela com a mesma geometria da demonstração.
+     * Prepara e abre a demonstração na thread de eventos do Swing.
+     *
+     * @throws IllegalStateException se chamada fora da thread de eventos
      */
     public Simulacao() {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            throw new IllegalStateException("A simulação deve ser criada na thread de eventos do Swing.");
+        }
         Mapa mapa = CenarioDemonstracao.mapa();
         busca = new HeuristicaAEstrela(mapa);
         janelaSimulacao = new JanelaSimulacao(mapa);
+        animacao = new AnimacaoMapa(new Consumer<Posicao>() {
+            @Override
+            public void accept(Posicao posicao) {
+                janelaSimulacao.exibirPosicao(posicao);
+            }
+        });
+        janelaSimulacao.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent evento) {
+                animacao.cancelar();
+                if (percursoEmAndamento != null) {
+                    concluirPercurso(false);
+                }
+            }
+        });
+        janelaSimulacao.setVisible(true);
     }
-    
+
     /**
-     * Exibe o percurso encontrado. Se o percurso estiver vazio, informa a
-     * falha e preserva o estado da simulação.
+     * Busca o percurso na thread chamadora e agenda sua exibição no Swing.
+     * Se a busca devolver um percurso vazio, informa a falha e preserva a posição visual.
+     * Pedidos recebidos durante outra animação terminam com {@link IllegalStateException}.
      *
      * @param origem posição inicial
      * @param destino posição final
+     * @return conclusão com {@code true} após apresentar o resultado, ou {@code false}
+     *         se a janela fechar antes da conclusão ou já estiver fechada
      * @throws NullPointerException se a origem ou o destino for nulo
      */
-    public void executarSimulacao(Posicao origem, Posicao destino) {
+    public CompletionStage<Boolean> executarSimulacao(Posicao origem, Posicao destino) {
         List<Posicao> caminho = busca.encontrarCaminho(origem, destino);
-        if (caminho.isEmpty()) {
-            System.out.println("Não foi possível encontrar um caminho para o destino.");
+        CompletableFuture<Boolean> conclusao = new CompletableFuture<Boolean>();
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                iniciarPercurso(caminho, conclusao);
+            }
+        });
+        return conclusao.minimalCompletionStage();
+    }
+
+    private void iniciarPercurso(List<Posicao> caminho, CompletableFuture<Boolean> conclusao) {
+        if (!janelaSimulacao.isDisplayable()) {
+            conclusao.complete(false);
             return;
         }
-
-        janelaSimulacao.exibirPosicao(caminho.getFirst());
-        for (int i = 1; i < caminho.size(); i++) {
-            janelaSimulacao.exibirPosicao(caminho.get(i));
-            esperar(INTERVALO_ENTRE_PASSOS_MS);
+        if (percursoEmAndamento != null) {
+            conclusao.completeExceptionally(new IllegalStateException("Já há um percurso em andamento."));
+            return;
         }
-
-        if (caminho.size() == 1) {
-            System.out.println("O jogador já está no destino.");
-        } else {
-            System.out.println("Movimentação concluída.");
+        if (caminho.isEmpty()) {
+            System.out.println("Não foi possível encontrar um caminho para o destino.");
+            conclusao.complete(true);
+            return;
         }
+        percursoEmAndamento = conclusao;
+        String mensagem = caminho.size() == 1 ? "O jogador já está no destino." : "Movimentação concluída.";
+        animacao.registrarOuvinteFim(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent evento) {
+                System.out.println(mensagem);
+                concluirPercurso(true);
+            }
+        });
+        animacao.animar(caminho);
     }
 
-    private void esperar(int milisegundos){
-        try{
-            Thread.sleep(milisegundos);
-        }catch(InterruptedException e){
-            System.out.println(e.getMessage());
-        }
+    private void concluirPercurso(boolean janelaAberta) {
+        CompletableFuture<Boolean> conclusao = percursoEmAndamento;
+        percursoEmAndamento = null;
+        conclusao.complete(janelaAberta);
     }
-    
 }

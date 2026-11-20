@@ -14,7 +14,7 @@ public final class JanelaSimulacao extends JFrame {
     private final VisaoMapa visaoMapa;
 
     /**
-     * Cria a janela para a geometria fornecida.
+     * Configura a janela na thread de eventos do Swing.
      *
      * @param mapa geometria a ser desenhada
      */
@@ -23,12 +23,11 @@ public final class JanelaSimulacao extends JFrame {
         visaoMapa = new VisaoMapa(mapa);
         add(visaoMapa);
         setSize(500, 500);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setVisible(true);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
 
     /**
-     * Solicita a exibição de um quadro do percurso.
+     * Solicita a exibição de um quadro do percurso na thread de eventos.
      *
      * @param posicao posição visual do personagem
      * @throws NullPointerException se a posição for nula

@@ -27,7 +27,7 @@ final class VisaoMapa extends JPanel {
 
     private final BufferedImage imagemMapa;
     private final BufferedImage imagemPersonagem;
-    private volatile Posicao posicaoVisual = null;
+    private Posicao posicaoVisual = null;
 
     /**
      * Prepara o desenho da geometria. O personagem aparece no primeiro quadro.
@@ -43,7 +43,7 @@ final class VisaoMapa extends JPanel {
     }
 
     /**
-     * Publica a posição do personagem para o próximo redesenho.
+     * Atualiza a posição do personagem na thread de eventos para o próximo redesenho.
      *
      * @param posicao célula do personagem
      * @throws NullPointerException se a posição for nula
@@ -58,8 +58,12 @@ final class VisaoMapa extends JPanel {
         super.paintComponent(graficos);
         Graphics2D quadro = (Graphics2D) graficos.create();
         try {
-            quadro.scale((double) getWidth() / imagemMapa.getWidth(),
+            double escala = Math.min((double) getWidth() / imagemMapa.getWidth(),
                     (double) getHeight() / imagemMapa.getHeight());
+            double margemX = (getWidth() - imagemMapa.getWidth() * escala) / 2;
+            double margemY = (getHeight() - imagemMapa.getHeight() * escala) / 2;
+            quadro.translate(margemX, margemY);
+            quadro.scale(escala, escala);
             quadro.drawImage(imagemMapa, 0, 0, null);
             Posicao posicao = posicaoVisual;
             if (posicao != null) {

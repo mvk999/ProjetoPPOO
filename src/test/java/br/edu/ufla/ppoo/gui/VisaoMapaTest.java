@@ -1,6 +1,8 @@
 package br.edu.ufla.ppoo.gui;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Map;
@@ -10,6 +12,7 @@ import javax.swing.SwingUtilities;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class VisaoMapaTest {
@@ -49,6 +52,41 @@ class VisaoMapaTest {
                 assertArrayEquals(pixels(semPersonagem, PAREDE), pixels(segundoQuadro, PAREDE));
                 assertFalse(Arrays.equals(pixels(semPersonagem, LIVRE), pixels(segundoQuadro, LIVRE)),
                         "O personagem deve aparecer na nova célula.");
+            }
+        });
+    }
+
+    @Test
+    void centralizaOMapaRedimensionadoSemAlterarOsGraficosDoSwing() throws Exception {
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                Mapa mapa = new Mapa(COLUNAS, LINHAS,
+                        Set.<Posicao>of(PAREDE), Map.<Posicao, String>of(LETREIRO, "X"));
+                VisaoMapa visao = new VisaoMapa(mapa);
+                visao.atualizarPosicao(LIVRE);
+                visao.setSize(2 * COLUNAS * CELULA, LINHAS * CELULA);
+                BufferedImage imagem = new BufferedImage(visao.getWidth(), visao.getHeight(),
+                        BufferedImage.TYPE_INT_RGB);
+                Graphics2D quadro = imagem.createGraphics();
+                try {
+                    AffineTransform transformacao = quadro.getTransform();
+                    visao.paint(quadro);
+                    assertEquals(transformacao, quadro.getTransform());
+                    int margemX = COLUNAS * CELULA / 2;
+                    assertEquals(Color.WHITE.getRGB(), imagem.getRGB(margemX - 1, 0));
+                    assertEquals(Color.GRAY.getRGB(), imagem.getRGB(margemX, 0));
+                    assertEquals(Color.WHITE.getRGB(), imagem.getRGB(margemX + COLUNAS * CELULA, 0));
+                    int[] personagem = imagem.getRGB(margemX + LIVRE.getX() * CELULA, 0,
+                            CELULA, CELULA, null, 0, CELULA);
+
+                    visao.setSize(COLUNAS * CELULA, LINHAS * CELULA);
+                    BufferedImage semMargem = pintar(visao);
+                    assertArrayEquals(personagem, pixels(semMargem, LIVRE));
+                    assertEquals(Color.GRAY.getRGB(), semMargem.getRGB(0, 0));
+                } finally {
+                    quadro.dispose();
+                }
             }
         });
     }
