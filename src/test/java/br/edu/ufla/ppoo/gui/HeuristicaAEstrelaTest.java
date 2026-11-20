@@ -14,11 +14,25 @@ import org.junit.jupiter.api.function.Executable;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class HeuristicaAEstrelaTest {
+    @Test
+    void prioridadeDoNoCombinaOCustoPercorridoEADistanciaEstimada() {
+        No origem = new No(new Posicao(0, 0), null, 0, 5);
+        No rumoAoDestino = new No(new Posicao(1, 0), origem, 1, 4);
+        No desvio = new No(new Posicao(0, 1), origem, 1, 6);
+
+        assertSame(origem, rumoAoDestino.getPai());
+        assertEquals(desvio.getCustoG(), rumoAoDestino.getCustoG());
+        assertEquals(4, rumoAoDestino.getCustoH());
+        assertEquals(5, rumoAoDestino.getCustoF());
+        assertEquals(7, desvio.getCustoF());
+    }
+
     private static final Posicao ORIGEM = new Posicao(6, 1);
     private static final Posicao DESTINO = new Posicao(8, 1);
     private static final Posicao PAREDE = new Posicao(7, 1);

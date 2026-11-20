@@ -74,6 +74,13 @@ public final class Simulacao {
         return conclusao.minimalCompletionStage();
     }
 
+    /**
+     * Fecha a janela na thread de eventos e dispara o cancelamento da animação ativa.
+     */
+    void fecharJanela() {
+        janelaSimulacao.dispose();
+    }
+
     private void iniciarPercurso(List<Posicao> caminho, CompletableFuture<Boolean> conclusao) {
         if (!janelaSimulacao.isDisplayable()) {
             conclusao.complete(false);

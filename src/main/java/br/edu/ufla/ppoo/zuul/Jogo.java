@@ -1,5 +1,8 @@
 package br.edu.ufla.ppoo.zuul;
 
+import java.io.PrintStream;
+import java.util.Objects;
+
 /**
  * Mantém o cenário e executa os comandos já interpretados do World of Zuul.
  *
@@ -7,12 +10,25 @@ package br.edu.ufla.ppoo.zuul;
  * @version 2011.07.31 (2016.02.01)
  */
 public class Jogo {
+    private final PrintStream saida;
     private Ambiente ambienteAtual;
 
     /**
      * Cria o cenário e posiciona o jogador no ambiente inicial.
+     * As mensagens são direcionadas à saída padrão atual.
      */
     public Jogo() {
+        this(System.out);
+    }
+
+    /**
+     * Cria uma sessão textual com a saída fornecida pelo ponto de entrada.
+     *
+     * @param saida destino das mensagens da sessão
+     * @throws NullPointerException se a saída for nula
+     */
+    Jogo(PrintStream saida) {
+        this.saida = Objects.requireNonNull(saida, "A saída é obrigatória.");
         ambienteAtual = criarAmbientes();
     }
 
@@ -39,17 +55,17 @@ public class Jogo {
      * Apresenta a mensagem de boas-vindas e o ambiente inicial.
      */
     void iniciar() {
-        System.out.println();
-        System.out.println("Bem-vindo ao World of Zuul!");
-        System.out.println("World of Zuul eh um novo jogo de aventura, incrivelmente chato.");
-        System.out.println("Digite '" + Comando.AJUDA + "' se voce precisar de ajuda.");
-        System.out.println();
+        saida.println();
+        saida.println("Bem-vindo ao World of Zuul!");
+        saida.println("World of Zuul eh um novo jogo de aventura, incrivelmente chato.");
+        saida.println("Digite '" + Comando.AJUDA + "' se voce precisar de ajuda.");
+        saida.println();
         imprimirAmbienteAtual();
     }
 
     private void imprimirAmbienteAtual() {
-        System.out.println("Voce esta " + ambienteAtual.getDescricao());
-        System.out.println("Saidas: " + String.join(" ", ambienteAtual.listarSaidas()));
+        saida.println("Voce esta " + ambienteAtual.getDescricao());
+        saida.println("Saidas: " + String.join(" ", ambienteAtual.listarSaidas()));
     }
 
     /**
@@ -68,7 +84,7 @@ public class Jogo {
         if (Comando.SAIR.equals(palavra)) {
             return sair(comando);
         }
-        System.out.println("Eu nao entendi o que voce disse...");
+        saida.println("Eu nao entendi o que voce disse...");
         return false;
     }
 
@@ -78,14 +94,14 @@ public class Jogo {
      */
     private void irParaAmbiente(Comando comando) {
         if (!comando.temArgumento()) {
-            System.out.println("Ir pra onde?");
+            saida.println("Ir pra onde?");
             return;
         }
 
         String direcao = comando.getArgumento();
         Ambiente proximoAmbiente = ambienteAtual.consultarSaida(direcao);
         if (proximoAmbiente == null) {
-            System.out.println("Nao ha passagem!");
+            saida.println("Nao ha passagem!");
             return;
         }
 
@@ -101,7 +117,7 @@ public class Jogo {
     private boolean sair(Comando comando) 
     {
         if(comando.temArgumento()) {
-            System.out.println("Sair o que?");
+            saida.println("Sair o que?");
             return false;
         }
         else {

@@ -22,6 +22,8 @@ public final class Posicao {
     }
 
     /**
+     * Consulta a coluna da posição.
+     *
      * @return a coordenada horizontal
      */
     public int getX() {
@@ -29,6 +31,8 @@ public final class Posicao {
     }
 
     /**
+     * Consulta a linha da posição.
+     *
      * @return a coordenada vertical
      */
     public int getY() {

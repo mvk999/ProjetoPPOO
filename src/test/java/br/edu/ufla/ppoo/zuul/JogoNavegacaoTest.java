@@ -14,6 +14,7 @@ import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.api.parallel.Resources;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ResourceLock(Resources.SYSTEM_OUT)
@@ -103,6 +104,23 @@ class JogoNavegacaoTest {
                 "Sair o que?", "Eu nao entendi o que voce disse...",
                 LABORATORIO, SAIDAS_DO_LABORATORIO,
                 ENCERRAMENTO), eventos);
+    }
+
+    @Test
+    void sessaoCriadaDiretamentePreservaOSuporteASaidaPadrao() {
+        PrintStream original = System.out;
+        ByteArrayOutputStream mensagens = new ByteArrayOutputStream();
+        try (PrintStream captura = new PrintStream(mensagens, true, StandardCharsets.UTF_8)) {
+            System.setOut(captura);
+            Jogo jogo = new Jogo();
+            jogo.iniciar();
+            Analisador analisador = new Analisador();
+            assertFalse(jogo.processarComando(analisador.interpretar("ir sul")));
+            assertTrue(jogo.processarComando(analisador.interpretar("sair")));
+            assertTrue(mensagens.toString(StandardCharsets.UTF_8).lines().toList().contains(LABORATORIO));
+        } finally {
+            System.setOut(original);
+        }
     }
 
     @Test
