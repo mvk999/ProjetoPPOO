@@ -55,10 +55,38 @@ class JogoNavegacaoTest {
                 ENCERRAMENTO), eventos);
     }
 
+    @Test
+    void argumentoExcedenteNaoTransformaComandoInvalidoEmMovimento() {
+        List<String> eventos = jogar("ir sul agora", "ir leste", "sair");
+
+        assertEquals(List.<String>of(
+                FORA, SAIDAS_DE_FORA,
+                "Nao ha passagem!",
+                "Voce esta no anfiteatro", "Saidas: oeste",
+                ENCERRAMENTO), eventos);
+    }
+
+    @Test
+    void executaUltimaLinhaSemQuebraEEncerraNoFimDaEntrada() {
+        List<String> eventos = jogarTexto("ir sul");
+
+        assertEquals(List.<String>of(
+                FORA, SAIDAS_DE_FORA, LABORATORIO, SAIDAS_DO_LABORATORIO, ENCERRAMENTO), eventos);
+    }
+
+    @Test
+    void encerraNormalmenteComEntradaVazia() {
+        assertEquals(List.<String>of(FORA, SAIDAS_DE_FORA, ENCERRAMENTO), jogarTexto(""));
+    }
+
     private static List<String> jogar(String... comandos) {
+        return jogarTexto(String.join("\n", comandos) + "\n");
+    }
+
+    private static List<String> jogarTexto(String texto) {
         InputStream entradaOriginal = System.in;
         PrintStream saidaOriginal = System.out;
-        byte[] entrada = (String.join("\n", comandos) + "\n").getBytes(StandardCharsets.UTF_8);
+        byte[] entrada = texto.getBytes(StandardCharsets.UTF_8);
         ByteArrayOutputStream saida = new ByteArrayOutputStream();
 
         try (PrintStream captura = new PrintStream(saida, true, StandardCharsets.UTF_8)) {

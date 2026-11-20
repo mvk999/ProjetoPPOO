@@ -1,34 +1,19 @@
 package br.edu.ufla.ppoo.zuul;
 
 /**
- *  Essa eh a classe principal da aplicacao "World of Zull".
- *  "World of Zuul" eh um jogo de aventura muito simples, baseado em texto.
- *  Usuarios podem caminhar em um cenario. E eh tudo! Ele realmente
- *  precisa ser estendido para fazer algo interessante!
- * 
- *  Para jogar esse jogo, crie uma instancia dessa classe e chame o metodo
- *  "jogar".
- * 
- *  Essa classe principal cria e inicializa todas as outras: ela cria os
- *  ambientes, cria o analisador e comeca o jogo. Ela tambeme avalia e 
- *  executa os comandos que o analisador retorna.
- * 
- * @author  Michael Kölling and David J. Barnes (traduzido por Julio Cesar Alves)
+ * Mantém o cenário e executa os comandos já interpretados do World of Zuul.
+ *
+ * @author Michael Kölling and David J. Barnes (traduzido por Julio Cesar Alves)
  * @version 2011.07.31 (2016.02.01)
  */
-
-public class Jogo 
-{
-    private final Analisador analisador;
+public class Jogo {
     private Ambiente ambienteAtual;
-        
+
     /**
-     * Cria o jogo e incializa seu mapa interno.
+     * Cria o cenário e posiciona o jogador no ambiente inicial.
      */
-    public Jogo() 
-    {
+    public Jogo() {
         ambienteAtual = criarAmbientes();
-        analisador = new Analisador();
     }
 
     private static Ambiente criarAmbientes() {
@@ -51,21 +36,10 @@ public class Jogo
     }
 
     /**
-     *  Rotina principal do jogo. Fica em loop ate terminar o jogo.
+     * Apresenta a mensagem de boas-vindas e o ambiente inicial.
      */
-    public void jogar() 
-    {            
+    void iniciar() {
         imprimirBoasVindas();
-
-        // Entra no loop de comando principal. Aqui nos repetidamente lemos
-        // comandos e os executamos ate o jogo terminar.
-                
-        boolean terminado = false;
-        while (! terminado) {
-            Comando comando = analisador.pegarComando();
-            terminado = processarComando(comando);
-        }
-        System.out.println("Obrigado por jogar. Ate mais!");
     }
 
     /**
@@ -85,12 +59,12 @@ public class Jogo
     }
 
     /**
-     * Dado um comando, processa-o (ou seja, executa-o)
-     * @param comando O Comando a ser processado.
-     * @return true se o comando finaliza o jogo.
+     * Executa um comando já interpretado.
+     *
+     * @param comando ação recebida do analisador
+     * @return {@code true} se o comando encerra a sessão
      */
-    private boolean processarComando(Comando comando) 
-    {
+    boolean processarComando(Comando comando) {
         boolean querSair = false;
 
         if(comando.ehDesconhecido()) {
@@ -133,12 +107,12 @@ public class Jogo
      * novo ambiente, caso contrario imprime mensagem de erro.
      */
     private void irParaAmbiente(Comando comando) {
-        if (!comando.temSegundaPalavra()) {
+        if (!comando.temArgumento()) {
             System.out.println("Ir pra onde?");
             return;
         }
 
-        String direcao = comando.getSegundaPalavra();
+        String direcao = comando.getArgumento();
         Ambiente proximoAmbiente = ambienteAtual.consultarSaida(direcao);
         if (proximoAmbiente == null) {
             System.out.println("Nao ha passagem!");
@@ -157,7 +131,7 @@ public class Jogo
      */
     private boolean sair(Comando comando) 
     {
-        if(comando.temSegundaPalavra()) {
+        if(comando.temArgumento()) {
             System.out.println("Sair o que?");
             return false;
         }
