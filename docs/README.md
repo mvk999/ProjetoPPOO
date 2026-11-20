@@ -32,7 +32,7 @@ src/
     resources/
       Imagens/             # Recursos usados pelas classes atuais
   test/
-    java/                  # Espaco para testes futuros
+    java/                  # Testes automatizados com JUnit
     resources/             # Espaco para dados de testes futuros
 docs/
   enunciado/               # PDF original e transcricao em Markdown
@@ -40,7 +40,6 @@ docs/
   bases-originais/         # Copias intactas dos arquivos fornecidos
 ```
 
-Os diretorios de testes ainda estao vazios. Nao foi adicionada biblioteca de testes.
 As bases originais em `docs` sao referencias e nao participam da compilacao Maven.
 
 ## Compilar e verificar
@@ -51,9 +50,15 @@ Na raiz do projeto:
 mvn clean verify
 ```
 
-Esse comando compila as duas bases e empacota as classes e as imagens em `target`.
-Ainda nao existem testes automatizados permanentes; o sucesso desse comando nao
-significa que as falhas funcionais das bases foram corrigidas.
+Esse comando compila as duas bases, executa os testes de igualdade de posições e
+de busca de percursos, e empacota as classes e as imagens em `target`.
+
+Em uma sessão com tela, execute também o teste de integração da simulação Swing.
+O teste abre a janela e a fecha ao terminar.
+
+```shell
+mvn "-Dppoo.testarGui=true" test
+```
 
 ## Executar as bases separadamente
 
