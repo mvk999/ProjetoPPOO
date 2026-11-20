@@ -1,68 +1,82 @@
 package br.edu.ufla.ppoo.zuul;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 /**
- * Classe Ambiente - um ambiente em um jogo adventure.
+ * Representa um local do cenário e mantém suas conexões de saída.
  *
- * Esta classe eh parte da aplicacao "World of Zuul".
- * "World of Zuul" eh um jogo de aventura muito simples, baseado em texto.  
- *
- * Um "Ambiente" representa uma localizacao no cenario do jogo. Ele eh
- * conectado aos outros ambientes atraves de saidas. As saidas sao
- * nomeadas como norte, sul, leste e oeste. Para cada direcao, o ambiente
- * guarda uma referencia para o ambiente vizinho, ou null se nao ha
- * saida naquela direcao.
- * 
- * @author  Michael Kölling and David J. Barnes (traduzido por Julio Cesar Alves)
+ * @author Michael Kölling and David J. Barnes (traduzido por Julio Cesar Alves)
  * @version 2011.07.31 (2016.02.01)
  */
-public class Ambiente 
-{
-    public String descricao;
-    public Ambiente saidaNorte;
-    public Ambiente saidaSul;
-    public Ambiente saidaLeste;
-    public Ambiente saidaOeste;
+public class Ambiente {
+    private final String descricao;
+    private final Map<String, Ambiente> saidas = new LinkedHashMap<String, Ambiente>();
 
     /**
-     * Cria um ambiente com a "descricao" passada. Inicialmente, ele
-     * nao tem saidas. "descricao" eh algo como "uma cozinha" ou
-     * "
-     * Create a room described "description". Initially, it has
-     * no exits. "description" is something like "a kitchen" or
-     * "um jardim aberto".
-     * @param descricao A descricao do ambiente.
+     * Cria um ambiente sem saídas cadastradas.
+     *
+     * @param descricao descrição apresentada ao jogador
+     * @throws NullPointerException se a descrição for nula
      */
-    public Ambiente(String descricao) 
-    {
-        this.descricao = descricao;
+    public Ambiente(String descricao) {
+        this.descricao = Objects.requireNonNull(descricao, "A descrição é obrigatória.");
     }
 
     /**
-     * Define as saidas do ambiente. Cada direcao ou leva a um
-     * outro ambiente ou eh null (nenhuma saida para la).
-     * @param norte A saida norte.
-     * @param leste A saida leste.
-     * @param sul A saida sul.
-     * @param oeste A saida oeste.
+     * Cadastra uma saída ou substitui o destino de uma direção já cadastrada.
+     * Uma conexão de retorno deve ser cadastrada no ambiente de destino.
+     *
+     * @param direcao direção usada para identificar a saída
+     * @param destino ambiente alcançado pela saída
+     * @throws NullPointerException se a direção ou o destino for nulo
+     * @throws IllegalArgumentException se a direção for vazia ou só contiver espaços em branco
      */
-    public void ajustarSaidas(Ambiente norte, Ambiente leste, Ambiente sul, Ambiente oeste) 
-    {
-        if(norte != null)
-            saidaNorte = norte;
-        if(leste != null)
-            saidaLeste = leste;
-        if(sul != null)
-            saidaSul = sul;
-        if(oeste != null)
-            saidaOeste = oeste;
+    public void definirSaida(String direcao, Ambiente destino) {
+        Objects.requireNonNull(direcao, "A direção é obrigatória.");
+        Objects.requireNonNull(destino, "O destino é obrigatório.");
+        if (direcao.isBlank()) {
+            throw new IllegalArgumentException("A direção deve ter um nome.");
+        }
+        saidas.put(direcao, destino);
     }
 
     /**
-     * @return A descricao do ambiente.
+     * Remove a saída da direção informada, caso esteja cadastrada.
+     *
+     * @param direcao direção a remover
      */
-    public String getDescricao()
-    {
+    public void removerSaida(String direcao) {
+        saidas.remove(direcao);
+    }
+
+    /**
+     * Consulta o destino associado à direção informada.
+     *
+     * @param direcao direção a consultar
+     * @return ambiente de destino, ou {@code null} se não houver saída nessa direção
+     */
+    public Ambiente consultarSaida(String direcao) {
+        return saidas.get(direcao);
+    }
+
+    /**
+     * Consulta as direções disponíveis neste ambiente.
+     *
+     * @return cópia imutável das direções cadastradas, na ordem de cadastro
+     */
+    public List<String> listarSaidas() {
+        return List.<String>copyOf(saidas.keySet());
+    }
+
+    /**
+     * Fornece o texto exibido ao entrar neste ambiente.
+     *
+     * @return descrição definida na criação do ambiente
+     */
+    public String getDescricao() {
         return descricao;
     }
-
 }
