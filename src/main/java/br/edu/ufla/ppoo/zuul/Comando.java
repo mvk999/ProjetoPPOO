@@ -13,6 +13,8 @@ public final class Comando {
     static final String SAIR = "sair";
     /** Palavra que solicita a lista de comandos. */
     static final String AJUDA = "ajuda";
+    /** Palavra que solicita que o jogo procure o tesouro. */
+    static final String CAVAR = "cavar";
 
     private final String palavra;
     private final String argumento;

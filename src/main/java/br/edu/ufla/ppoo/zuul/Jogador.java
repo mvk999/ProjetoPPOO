@@ -51,11 +51,15 @@ public final class Jogador {
      *
      * @throws IllegalStateException se a carga já tiver sido usada
      */
-    public void consumirCarga() {
+    public boolean consumirCarga() {
         if (!cargaDisponivel) {
-            throw new IllegalStateException("A carga explosiva já foi utilizada.");
+            return false;
         }
         cargaDisponivel = false;
+        if(getAmbienteAtual().recuperarTesouro()) {
+            return true;
+        } 
+        return false;
     }
 
     /**

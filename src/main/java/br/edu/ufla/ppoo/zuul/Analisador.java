@@ -24,6 +24,7 @@ public final class Analisador {
         comandos.put(Comando.IR, Comando.IR);
         comandos.put(Comando.SAIR, Comando.SAIR);
         comandos.put(Comando.AJUDA, Comando.AJUDA);
+        comandos.put(Comando.CAVAR, Comando.CAVAR);
         vocabulario = Collections.<String, String>unmodifiableMap(comandos);
     }
 

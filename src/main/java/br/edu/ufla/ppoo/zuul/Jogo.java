@@ -37,7 +37,8 @@ public class Jogo {
     Jogo(PrintStream saida) {
         this.saida = Objects.requireNonNull(saida, "A saída é obrigatória.");
         jogador = new Jogador(criarAmbientes());
-        
+        tentativasRestantes = 1;
+        estadoPartida = EstadoPartida.PREPARADA;
     }
 
     private Ambiente criarAmbientes() {
@@ -62,6 +63,8 @@ public class Jogo {
         conectarAmbientes(salaJantar, "leste", cozinha, "oeste", "porta-jantar-cozinha");
         conectarAmbientes(cozinha, "sul", areaServico, "norte", "porta-cozinha-servico");
 
+        areaServico.definirTesouroEnterrado(true);
+
         return salaTv;
     }
 
@@ -69,9 +72,11 @@ public class Jogo {
      * Apresenta a mensagem de boas-vindas e o ambiente inicial.
      */
     void iniciar() {
+        estadoPartida = EstadoPartida.EM_ANDAMENTO;
         saida.println();
         saida.println("Bem-vindo à casa mal-assombrada!");
         saida.println("Você é um caçador de tesouros procurando por uma fortuna enterrada.");
+        saida.println("Você possui " + tentativasRestantes + " tentativas.");
         saida.println("Digite '" + Comando.AJUDA + "' se voce precisar de ajuda.");
         saida.println();
         imprimirAmbienteAtual();
@@ -80,6 +85,7 @@ public class Jogo {
     private void imprimirAmbienteAtual() {
         Ambiente ambienteAtual = jogador.getAmbienteAtual();
         saida.println("Voce esta em " + ambienteAtual.getDescricao());
+        saida.println("Atualmente voce possui " + tentativasRestantes + " tentativas restantes.");
         saida.println("Saidas: " + String.join(" ", ambienteAtual.listarSaidas()));
     }
 
@@ -92,13 +98,19 @@ public class Jogo {
      */
     boolean processarComando(Comando comando) {
         String palavra = comando.getPalavraDeComando();
-        if (Comando.IR.equals(palavra)) {
-            irParaAmbiente(comando);
-            return false;
-        }
+
         if (Comando.SAIR.equals(palavra)) {
             return sair(comando);
         }
+        if (Comando.CAVAR.equals(palavra)) {
+            cavar(comando);
+            return partidaTerminou();
+        }
+        if (Comando.IR.equals(palavra)) {
+            irParaAmbiente(comando);
+            return partidaTerminou();
+        }
+
         saida.println("Eu nao entendi o que voce disse...");
         return false;
     }
@@ -108,6 +120,11 @@ public class Jogo {
      * novo ambiente, caso contrario imprime mensagem de erro.
      */
     private void irParaAmbiente(Comando comando) {
+        if(tentativasRestantes <= 0) {
+            estadoPartida = EstadoPartida.DERROTA;
+            saida.println("Você não possui tentativas restantes. Game over.");
+            return;
+        }
         if (!comando.temArgumento()) {
             saida.println("Ir pra onde?");
             return;
@@ -129,8 +146,10 @@ public class Jogo {
 
         boolean abriu = porta.abreNormalmente();
         sortearTodasAsPortas();
+        tentativasRestantes--;
+
         if (!abriu) {
-            saida.println("A porta está emperrada. Não foi possível abrir.");
+            saida.println("A porta está emperrada. Não foi possível abrir. " + tentativasRestantes + " tentativas restantes.");
             return;
         }
 
@@ -187,13 +206,31 @@ public class Jogo {
         }
     }
 
+    private void cavar(Comando comando) {
+        if(!comando.temArgumento()) {
+            if(jogador.consumirCarga()) {
+                estadoPartida = EstadoPartida.VITORIA;
+                saida.println("Você encontrou o tesouro. Parabéns!");
+            } else {
+                estadoPartida = EstadoPartida.DERROTA;
+                saida.println("Você cavou e não encontrou nada. Game Over.");
+                }
+        } else {
+            saida.println("Cavar o que?"); 
+            }
+    }
+
+    private boolean partidaTerminou() {
+    return estadoPartida == EstadoPartida.VITORIA || estadoPartida == EstadoPartida.DERROTA;
+}
+
     /**
      * Sorteia o número de tentativas da partida
      */
-    private void sorteioNumTentativas(){
+    private int sorteioNumTentativas(){
         int min = 10;
         int max = 30;
 
-        tentativasRestantes = sorteio.nextInt((max - min) + 1) + min;
+        return sorteio.nextInt((max - min) + 1) + min;
     }
 }

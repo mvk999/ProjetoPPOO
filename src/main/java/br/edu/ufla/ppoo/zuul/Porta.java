@@ -57,7 +57,7 @@ public final class Porta {
      */
     public void sortearEstado(Random sorteio) {
         Objects.requireNonNull(sorteio, "O gerador de sorteio é obrigatório.");
-        emperrada = sorteio.nextBoolean();
+        emperrada = sorteio.nextInt(3) == 0;
     }
 
     /**
