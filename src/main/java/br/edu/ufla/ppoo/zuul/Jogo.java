@@ -17,6 +17,8 @@ public class Jogo {
     private final Jogador jogador;
     private final Random sorteio = new Random();
     private final List<Porta> portas = new ArrayList<Porta>();
+    private int tentativasRestantes;
+    private EstadoPartida estadoPartida;
 
     /**
      * Cria o cenário e posiciona o jogador no ambiente inicial.
@@ -183,5 +185,15 @@ public class Jogo {
         else {
             return true;  // sinaliza que nos queremos sair
         }
+    }
+
+    /**
+     * Sorteia o número de tentativas da partida
+     */
+    private void sorteioNumTentativas(){
+        int min = 10;
+        int max = 30;
+
+        tentativasRestantes = sorteio.nextInt((max - min) + 1) + min;
     }
 }
