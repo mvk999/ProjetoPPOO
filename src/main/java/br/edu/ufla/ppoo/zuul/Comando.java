@@ -9,10 +9,14 @@ package br.edu.ufla.ppoo.zuul;
 public final class Comando {
     /** Palavra que solicita deslocamento. */
     static final String IR = "ir";
+    /** Palavra que solicita deslocamento usando a chave mestra. */
+    static final String CHAVE = "chave";
     /** Palavra que solicita o encerramento da sessão. */
     static final String SAIR = "sair";
     /** Palavra que solicita a lista de comandos. */
     static final String AJUDA = "ajuda";
+    /** Palavra que solicita que o jogo procure o tesouro. */
+    static final String CAVAR = "cavar";
 
     private final String palavra;
     private final String argumento;

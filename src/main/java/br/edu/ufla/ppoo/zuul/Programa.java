@@ -44,7 +44,7 @@ public final class Programa {
             erros.println("Não foi possível ler os comandos do terminal.");
             erros.flush();
         }
-        saida.println("Obrigado por jogar. Ate mais!");
+        saida.println("Obrigado por explorar a casa mal-assombrada. Ate mais!");
         saida.flush();
     }
 
@@ -68,8 +68,8 @@ public final class Programa {
     }
 
     private static void imprimirAjuda(PrintStream saida, String palavrasAceitas) {
-        saida.println("Voce esta perdido. Voce esta sozinho. Voce caminha");
-        saida.println("pela universidade.");
+        saida.println("Você está em uma casa abandonada e mal-assombrada.");
+        saida.println("Explore os ambientes em busca do tesouro.");
         saida.println();
         saida.println("Suas palavras de comando sao:");
         saida.println("   " + palavrasAceitas);
