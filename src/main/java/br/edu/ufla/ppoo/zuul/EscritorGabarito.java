@@ -22,6 +22,10 @@ public class EscritorGabarito {
 
             escritor.write("dica2=" + configuracao.getAmbienteDica2() + "\n");
 
+            escritor.write("ambienteNegadoDica1=" + configuracao.getAmbienteNegadoDica1() + "\n");
+
+            escritor.write("ambienteNegadoDica2=" + configuracao.getAmbienteNegadoDica2() + "\n");
+
             escritor.write("chaveMestra=" + configuracao.getAmbienteChaveMestra() + "\n");
 
             escritor.write("durabilidadeChaveMestra=" + configuracao.getDurabilidadeChaveMestra() + "\n");

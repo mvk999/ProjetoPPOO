@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Random;
 
 public class SorteadorGabarito {
+    private static final String AMBIENTE_INICIAL = "Sala de TV";
 
     private final Random geradorAleatorio;
 
@@ -22,17 +23,31 @@ public class SorteadorGabarito {
             throw new IllegalArgumentException("São necessários pelo menos quatro ambientes.");
         }
 
-        // Cria uma cópia para não modificar a lista original.
+        if (!nomesAmbientes.contains(AMBIENTE_INICIAL)) {
+            throw new IllegalArgumentException("A lista deve incluir o ambiente inicial: " + AMBIENTE_INICIAL);
+        }
+
         List<String> ambientesSorteados = new ArrayList<String>(nomesAmbientes);
-
-        // Embaralha a ordem dos ambientes.
         Collections.shuffle(ambientesSorteados, geradorAleatorio);
-
-        // Sorteia os ambientes dos itens.
         String ambienteTesouro = ambientesSorteados.get(0);
-        String ambienteDica1 = ambientesSorteados.get(1);
-        String ambienteDica2 = ambientesSorteados.get(2);
-        String ambienteChaveMestra = ambientesSorteados.get(3);
+
+        List<String> ambientesDeItens = new ArrayList<String>(nomesAmbientes);
+        ambientesDeItens.remove(AMBIENTE_INICIAL);
+        ambientesDeItens.remove(ambienteTesouro);
+        if (ambientesDeItens.size() < 3) {
+            throw new IllegalArgumentException(
+                    "São necessários três ambientes além do inicial e do tesouro para posicionar os itens.");
+        }
+        Collections.shuffle(ambientesDeItens, geradorAleatorio);
+        String ambienteDica1 = ambientesDeItens.get(0);
+        String ambienteDica2 = ambientesDeItens.get(1);
+        String ambienteChaveMestra = ambientesDeItens.get(2);
+
+        List<String> ambientesNegados = new ArrayList<String>(nomesAmbientes);
+        ambientesNegados.remove(ambienteTesouro);
+        Collections.shuffle(ambientesNegados, geradorAleatorio);
+        String ambienteNegadoDica1 = ambientesNegados.get(0);
+        String ambienteNegadoDica2 = ambientesNegados.get(1);
 
         // Sorteia a durabilidade entre 1 e 10.
         int durabilidadeChaveMestra =
@@ -44,7 +59,8 @@ public class SorteadorGabarito {
         int tentativasInicais = geradorAleatorio.nextInt((max - min) + 1) + min;
     
 
-        return new ConfiguracaoGabarito(ambienteTesouro, ambienteDica1, ambienteDica2, ambienteChaveMestra,
+        return new ConfiguracaoGabarito(ambienteTesouro, ambienteDica1, ambienteDica2,
+                                        ambienteNegadoDica1, ambienteNegadoDica2, ambienteChaveMestra,
                                         durabilidadeChaveMestra, tentativasInicais);
     }
 }

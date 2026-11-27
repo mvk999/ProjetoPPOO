@@ -1,10 +1,14 @@
 package br.edu.ufla.ppoo.zuul;
 
+import java.io.IOException;
 import java.io.PrintStream;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
-import java.util.Random;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 
 /**
  * Mantém o cenário e executa os comandos já interpretados do World of Zuul.
@@ -17,6 +21,7 @@ public class Jogo {
     private final Jogador jogador;
     private final Random sorteio = new Random();
     private final List<Porta> portas = new ArrayList<Porta>();
+    private ConfiguracaoGabarito configuracaoGabarito;
     private int tentativasRestantes;
     private EstadoPartida estadoPartida;
 
@@ -37,7 +42,7 @@ public class Jogo {
     Jogo(PrintStream saida) {
         this.saida = Objects.requireNonNull(saida, "A saída é obrigatória.");
         jogador = new Jogador(criarAmbientes());
-        tentativasRestantes = 1;
+        tentativasRestantes = configuracaoGabarito.getTentativasIniciais();
         estadoPartida = EstadoPartida.PREPARADA;
     }
 
@@ -52,6 +57,25 @@ public class Jogo {
         Ambiente areaServico = new Ambiente("area-servico", "Área de Serviço");
         Ambiente corredor = new Ambiente("corredor", "Corredor");
 
+        Map<String, Ambiente> ambientes = new LinkedHashMap<String, Ambiente>();
+        ambientes.put(quarto1.getNome(), quarto1);
+        ambientes.put(quarto2.getNome(), quarto2);
+        ambientes.put(lavabo.getNome(), lavabo);
+        ambientes.put(banheiro.getNome(), banheiro);
+        ambientes.put(salaJantar.getNome(), salaJantar);
+        ambientes.put(cozinha.getNome(), cozinha);
+        ambientes.put(salaTv.getNome(), salaTv);
+        ambientes.put(areaServico.getNome(), areaServico);
+        ambientes.put(corredor.getNome(), corredor);
+
+        List<String> nomesAmbientes = new ArrayList<String>(ambientes.keySet());
+        configuracaoGabarito = new SorteadorGabarito().sortear(nomesAmbientes);
+        try {
+            new EscritorGabarito().gravar("gabarito.txt", configuracaoGabarito);
+        } catch (IOException erro) {
+            throw new UncheckedIOException("Não foi possível gravar o arquivo de gabarito.", erro);
+        }
+
         conectarAmbientes(salaTv, "norte", salaJantar, "sul", "porta-tv-jantar");
         conectarAmbientes(salaTv, "leste", areaServico, "oeste", "porta-tv-servico");
         conectarAmbientes(quarto1, "sul", lavabo, "norte", "porta-quarto1-lavabo");
@@ -63,7 +87,31 @@ public class Jogo {
         conectarAmbientes(salaJantar, "leste", cozinha, "oeste", "porta-jantar-cozinha");
         conectarAmbientes(cozinha, "sul", areaServico, "norte", "porta-cozinha-servico");
 
-        areaServico.definirTesouroEnterrado(true);
+        Ambiente ambienteTesouro = ambientes.get(configuracaoGabarito.getAmbienteTesouro());
+        if (ambienteTesouro == null) {
+            throw new IllegalStateException("O gabarito indica um ambiente de tesouro inexistente.");
+        }
+        ambienteTesouro.definirTesouroEnterrado(true);
+
+        Ambiente ambienteChave = ambientes.get(configuracaoGabarito.getAmbienteChaveMestra());
+        if (ambienteChave == null) {
+            throw new IllegalStateException("O gabarito indica um ambiente de chave inexistente.");
+        }
+        ambienteChave.adicionarItem(new ChaveMestra(configuracaoGabarito.getDurabilidadeChaveMestra()));
+
+        Ambiente ambienteDica1 = ambientes.get(configuracaoGabarito.getAmbienteDica1());
+        if (ambienteDica1 == null) {
+            throw new IllegalStateException("O gabarito indica um ambiente para a primeira dica inexistente.");
+        }
+        ambienteDica1.adicionarItem(new Dica("O tesouro não está no(a) "
+                + configuracaoGabarito.getAmbienteNegadoDica1() + "."));
+
+        Ambiente ambienteDica2 = ambientes.get(configuracaoGabarito.getAmbienteDica2());
+        if (ambienteDica2 == null) {
+            throw new IllegalStateException("O gabarito indica um ambiente para a segunda dica inexistente.");
+        }
+        ambienteDica2.adicionarItem(new Dica("O tesouro não está no(a) "
+                + configuracaoGabarito.getAmbienteNegadoDica2() + "."));
 
         return salaTv;
     }
@@ -106,8 +154,12 @@ public class Jogo {
             cavar(comando);
             return partidaTerminou();
         }
+        if (Comando.CHAVE.equals(palavra)) {
+            irParaAmbiente(comando, true);
+            return partidaTerminou();
+        }
         if (Comando.IR.equals(palavra)) {
-            irParaAmbiente(comando);
+            irParaAmbiente(comando, false);
             return partidaTerminou();
         }
 
@@ -119,14 +171,14 @@ public class Jogo {
      * Tenta ir em uma direcao. Se existe uma saida entra no 
      * novo ambiente, caso contrario imprime mensagem de erro.
      */
-    private void irParaAmbiente(Comando comando) {
+    private void irParaAmbiente(Comando comando, boolean usarChave) {
         if(tentativasRestantes <= 0) {
             estadoPartida = EstadoPartida.DERROTA;
             saida.println("Você não possui tentativas restantes. Game over.");
             return;
         }
         if (!comando.temArgumento()) {
-            saida.println("Ir pra onde?");
+            saida.println(usarChave ? "Usar a chave para onde?" : "Ir pra onde?");
             return;
         }
 
@@ -144,9 +196,22 @@ public class Jogo {
             return;
         }
 
-        boolean abriu = porta.abreNormalmente();
+        boolean abriu;
+        if (usarChave) {
+            ChaveMestra chave = jogador.getChave();
+            if (chave == null || !chave.funcionando()) {
+                saida.println("Você não possui uma chave mestra utilizável.");
+                return;
+            }
+            jogador.usarChave();
+            abriu = true;
+            saida.println("Você usou a chave mestra. Durabilidade restante: "
+                    + chave.getDurabilidade() + ".");
+        } else {
+            abriu = porta.abreNormalmente();
+            tentativasRestantes--;
+        }
         sortearTodasAsPortas();
-        tentativasRestantes--;
 
         if (!abriu) {
             saida.println("A porta está emperrada. Não foi possível abrir. " + tentativasRestantes + " tentativas restantes.");
@@ -224,13 +289,4 @@ public class Jogo {
     return estadoPartida == EstadoPartida.VITORIA || estadoPartida == EstadoPartida.DERROTA;
 }
 
-    /**
-     * Sorteia o número de tentativas da partida
-     */
-    private int sorteioNumTentativas(){
-        int min = 10;
-        int max = 30;
-
-        return sorteio.nextInt((max - min) + 1) + min;
-    }
 }
