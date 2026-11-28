@@ -19,7 +19,7 @@ import java.util.Random;
 public class Jogo {
     private final PrintStream saida;
     private final Jogador jogador;
-    private final Random sorteio = new Random();
+    private final Random sorteio;
     private final List<Porta> portas = new ArrayList<Porta>();
     private ConfiguracaoGabarito configuracaoGabarito;
     private int tentativasRestantes;
@@ -40,13 +40,25 @@ public class Jogo {
      * @throws NullPointerException se a saída for nula
      */
     Jogo(PrintStream saida) {
+        this(saida, new Random(), new SorteadorGabarito(), "gabarito.txt");
+    }
+
+    /**
+     * Prepara uma sessão com os sorteios e o destino do gabarito informados.
+     * @param saida destino das mensagens da sessão
+     * @param sorteio gerador do estado das portas
+     * @param sorteadorGabarito gerador da configuração inicial da partida
+     * @param arquivoGabarito caminho em que o gabarito é gravado
+     */
+    Jogo(PrintStream saida, Random sorteio, SorteadorGabarito sorteadorGabarito, String arquivoGabarito) {
         this.saida = Objects.requireNonNull(saida, "A saída é obrigatória.");
-        jogador = new Jogador(criarAmbientes());
+        this.sorteio = Objects.requireNonNull(sorteio, "O sorteio de portas é obrigatório.");
+        jogador = new Jogador(criarAmbientes(sorteadorGabarito, arquivoGabarito));
         tentativasRestantes = configuracaoGabarito.getTentativasIniciais();
         estadoPartida = EstadoPartida.PREPARADA;
     }
 
-    private Ambiente criarAmbientes() {
+    private Ambiente criarAmbientes(SorteadorGabarito sorteadorGabarito, String arquivoGabarito) {
         Ambiente quarto1 = new Ambiente("quarto-1", "Quarto 1");
         Ambiente quarto2 = new Ambiente("quarto-2", "Quarto 2");
         Ambiente lavabo = new Ambiente("lavabo", "Lavabo");
@@ -69,9 +81,9 @@ public class Jogo {
         ambientes.put(corredor.getNome(), corredor);
 
         List<String> nomesAmbientes = new ArrayList<String>(ambientes.keySet());
-        configuracaoGabarito = new SorteadorGabarito().sortear(nomesAmbientes);
+        configuracaoGabarito = sorteadorGabarito.sortear(nomesAmbientes);
         try {
-            new EscritorGabarito().gravar("gabarito.txt", configuracaoGabarito);
+            new EscritorGabarito().gravar(arquivoGabarito, configuracaoGabarito);
         } catch (IOException erro) {
             throw new UncheckedIOException("Não foi possível gravar o arquivo de gabarito.", erro);
         }
@@ -142,9 +154,12 @@ public class Jogo {
      * cabe ao ponto de entrada.
      *
      * @param comando ação recebida do analisador
-     * @return {@code true} se o comando encerra a sessão
+     * @return {@code true} se o comando encerra a sessão ou se a partida já terminou
      */
     boolean processarComando(Comando comando) {
+        if (partidaTerminou()) {
+            return true;
+        }
         String palavra = comando.getPalavraDeComando();
 
         if (Comando.SAIR.equals(palavra)) {
@@ -167,16 +182,7 @@ public class Jogo {
         return false;
     }
 
-    /** 
-     * Tenta ir em uma direcao. Se existe uma saida entra no 
-     * novo ambiente, caso contrario imprime mensagem de erro.
-     */
     private void irParaAmbiente(Comando comando, boolean usarChave) {
-        if(tentativasRestantes <= 0) {
-            estadoPartida = EstadoPartida.DERROTA;
-            saida.println("Você não possui tentativas restantes. Game over.");
-            return;
-        }
         if (!comando.temArgumento()) {
             saida.println(usarChave ? "Usar a chave para onde?" : "Ir pra onde?");
             return;
@@ -213,14 +219,18 @@ public class Jogo {
         }
         sortearTodasAsPortas();
 
-        if (!abriu) {
+        if (abriu) {
+            List<ItemEncontravel> itensEncontrados = jogador.moverPara(proximoAmbiente);
+            imprimirItensEncontrados(itensEncontrados);
+            imprimirAmbienteAtual();
+        } else {
             saida.println("A porta está emperrada. Não foi possível abrir. " + tentativasRestantes + " tentativas restantes.");
-            return;
         }
 
-        List<ItemEncontravel> itensEncontrados = jogador.moverPara(proximoAmbiente);
-        imprimirItensEncontrados(itensEncontrados);
-        imprimirAmbienteAtual();
+        if (tentativasRestantes == 0) {
+            estadoPartida = EstadoPartida.DERROTA;
+            saida.println("Você não possui tentativas restantes. Game over.");
+        }
     }
 
     private void imprimirItensEncontrados(List<ItemEncontravel> itensEncontrados) {
@@ -286,7 +296,6 @@ public class Jogo {
     }
 
     private boolean partidaTerminou() {
-    return estadoPartida == EstadoPartida.VITORIA || estadoPartida == EstadoPartida.DERROTA;
-}
-
+        return estadoPartida == EstadoPartida.VITORIA || estadoPartida == EstadoPartida.DERROTA;
+    }
 }
