@@ -30,7 +30,6 @@ public final class JanelaSimulacao extends JFrame {
     private JLabel numTentativasRestantes;
     private JLabel rotuloDurabilidadeChaveMestra;
     private JLabel durabilidadeChaveMestra;
-    private JLabel rotuloDicasEncontradas;
     private JTextArea areaDicas;
     private JTextArea areaMensagens;
     private JTextField campoComando;
@@ -52,10 +51,10 @@ public final class JanelaSimulacao extends JFrame {
         
 
         rotuloNumTentativasRestantes = new JLabel("Nº de Tentativas Restantes:");
-        numTentativasRestantes = new JLabel("30");
+        numTentativasRestantes = new JLabel("30"); // exemplo
 
         rotuloDurabilidadeChaveMestra = new JLabel("Durabilidade da Chave Mestra:");
-        durabilidadeChaveMestra = new JLabel("10");
+        durabilidadeChaveMestra = new JLabel("10"); // exemplo 
 
         rotuloNumTentativasRestantes.setFont(new Font("Arial", Font.PLAIN, 16));
         numTentativasRestantes.setFont(new Font("Arial", Font.PLAIN, 16));
