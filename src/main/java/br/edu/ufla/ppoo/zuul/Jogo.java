@@ -187,16 +187,10 @@ public class Jogo {
         }
 
         String direcao = comando.getArgumento();
-        Ambiente proximoAmbiente = jogador.getAmbienteAtual().consultarSaida(direcao);
-        if (proximoAmbiente == null) {
-            saida.println("Nao ha passagem!");
-            return;
-        }
-
         Ambiente ambienteAtual = jogador.getAmbienteAtual();
-        Porta porta = ambienteAtual.consultarPorta(proximoAmbiente.getId());
+        Porta porta = ambienteAtual.consultarPortaNaDirecao(direcao);
         if (porta == null) {
-            saida.println("A passagem não possui uma porta.");
+            saida.println("Nao ha passagem!");
             return;
         }
 
@@ -218,6 +212,7 @@ public class Jogo {
         sortearTodasAsPortas();
 
         if (abriu) {
+            Ambiente proximoAmbiente = porta.outroLado(ambienteAtual);
             List<ItemEncontravel> itensEncontrados = jogador.moverPara(proximoAmbiente);
             imprimirItensEncontrados(itensEncontrados);
             imprimirAmbienteAtual();
@@ -245,16 +240,11 @@ public class Jogo {
 
     private void conectarAmbientes(Ambiente ambienteA, String direcaoA,
                                           Ambiente ambienteB, String direcaoB, String idPorta) {
-        ambienteA.definirSaida(direcaoA, ambienteB);
-        ambienteB.definirSaida(direcaoB, ambienteA);
-
         Porta porta = new Porta(idPorta, ambienteA, ambienteB);
-        
+        ambienteA.definirSaida(direcaoA, porta);
+        ambienteB.definirSaida(direcaoB, porta);
         portas.add(porta);
         porta.sortearEstado(sorteio);
-
-        ambienteA.definirPorta(ambienteB.getId(), porta);
-        ambienteB.definirPorta(ambienteA.getId(), porta);
     }
 
     private void sortearTodasAsPortas() {

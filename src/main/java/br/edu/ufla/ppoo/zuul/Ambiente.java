@@ -17,8 +17,7 @@ public class Ambiente {
     private final String nome;
     private boolean tesouroEnterrado;
     private final List<ItemEncontravel> itens = new ArrayList<ItemEncontravel>();
-    private final Map<String, Ambiente> saidas = new LinkedHashMap<String, Ambiente>();
-    private final Map<String, Porta> portas = new LinkedHashMap<String, Porta>();
+    private final Map<String, Porta> saidas = new LinkedHashMap<String, Porta>();
 
     /**
      * Cria um ambiente sem saídas cadastradas.
@@ -96,48 +95,38 @@ public class Ambiente {
     }
 
     /**
-     * Liga uma porta ao identificador do ambiente de destino.
-     *
-     * @param destinoId identificador do ambiente alcançado pela porta
-     * @param porta porta usada para alcançar o destino
-     * @throws NullPointerException se o identificador ou a porta forem nulos
-     * @throws IllegalArgumentException se o identificador estiver vazio
-     */
-    public void definirPorta(String destinoId, Porta porta) {
-        Objects.requireNonNull(destinoId, "O identificador do destino é obrigatório.");
-        Objects.requireNonNull(porta, "A porta é obrigatória.");
-        if (destinoId.isBlank()) {
-            throw new IllegalArgumentException("O identificador do destino não pode estar vazio.");
-        }
-        portas.put(destinoId, porta);
-    }
-
-    /**
      * Consulta a porta associada ao identificador de destino.
      *
      * @param destinoId identificador do ambiente de destino
-     * @return porta associada, ou {@code null} se não houver porta
+     * @return primeira porta para o destino na ordem das saídas, ou {@code null} se não houver porta
      */
     public Porta consultarPorta(String destinoId) {
-        return portas.get(destinoId);
+        for (Porta porta : saidas.values()) {
+            if (porta.outroLado(this).getId().equals(destinoId)) {
+                return porta;
+            }
+        }
+        return null;
     }
 
     /**
-     * Cadastra uma saída ou substitui o destino de uma direção já cadastrada.
-     * Uma conexão de retorno deve ser cadastrada no ambiente de destino.
+     * Cadastra uma saída ou substitui a porta de uma direção já cadastrada.
+     * O ambiente de destino deve cadastrar a mesma porta na direção de retorno.
      *
      * @param direcao direção usada para identificar a saída
-     * @param destino ambiente alcançado pela saída
-     * @throws NullPointerException se a direção ou o destino for nulo
-     * @throws IllegalArgumentException se a direção for vazia ou só contiver espaços em branco
+     * @param porta porta pela qual se alcança o destino
+     * @throws NullPointerException se a direção ou a porta for nula
+     * @throws IllegalArgumentException se a direção estiver em branco ou a porta
+     *         não ligar este ambiente
      */
-    public void definirSaida(String direcao, Ambiente destino) {
+    public void definirSaida(String direcao, Porta porta) {
         Objects.requireNonNull(direcao, "A direção é obrigatória.");
-        Objects.requireNonNull(destino, "O destino é obrigatório.");
+        Objects.requireNonNull(porta, "A porta é obrigatória.");
         if (direcao.isBlank()) {
             throw new IllegalArgumentException("A direção deve ter um nome.");
         }
-        saidas.put(direcao, destino);
+        porta.outroLado(this);
+        saidas.put(direcao, porta);
     }
 
     /**
@@ -156,6 +145,14 @@ public class Ambiente {
      * @return ambiente de destino, ou {@code null} se não houver saída nessa direção
      */
     public Ambiente consultarSaida(String direcao) {
+        Porta porta = consultarPortaNaDirecao(direcao);
+        if (porta == null) {
+            return null;
+        }
+        return porta.outroLado(this);
+    }
+
+    Porta consultarPortaNaDirecao(String direcao) {
         return saidas.get(direcao);
     }
 
