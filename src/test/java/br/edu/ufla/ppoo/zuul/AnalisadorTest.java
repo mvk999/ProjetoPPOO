@@ -20,7 +20,7 @@ class AnalisadorTest {
     @Test
     void ajudaListaTodosOsComandosDaBaseSemAnunciarPalavrasInvalidas() {
         List<String> anunciados = Arrays.<String>asList(analisador.consultarAjuda().split(" "));
-        assertEquals(List.<String>of("ir", "sair", "ajuda"), anunciados);
+        assertEquals(List.<String>of("ir", "chave", "sair", "ajuda", "cavar"), anunciados);
 
         for (String palavra : anunciados) {
             Comando comando = analisador.interpretar(palavra);

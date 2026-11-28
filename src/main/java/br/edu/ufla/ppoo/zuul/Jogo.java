@@ -61,8 +61,8 @@ public class Jogo {
     private Ambiente criarAmbientes(SorteadorGabarito sorteadorGabarito, String arquivoGabarito) {
         Ambiente quarto1 = new Ambiente("quarto-1", "Quarto 1");
         Ambiente quarto2 = new Ambiente("quarto-2", "Quarto 2");
-        Ambiente lavabo = new Ambiente("lavabo", "Lavabo");
-        Ambiente banheiro = new Ambiente("banheiro", "banheiro");
+        Ambiente wc1 = new Ambiente("lavabo", "WC 1");
+        Ambiente wc2 = new Ambiente("banheiro", "WC 2");
         Ambiente salaJantar = new Ambiente("sala-jantar", "Sala de Jantar");
         Ambiente cozinha = new Ambiente("cozinha", "Cozinha");
         Ambiente salaTv = new Ambiente("sala-tv", "Sala de TV");
@@ -72,8 +72,8 @@ public class Jogo {
         Map<String, Ambiente> ambientes = new LinkedHashMap<String, Ambiente>();
         ambientes.put(quarto1.getNome(), quarto1);
         ambientes.put(quarto2.getNome(), quarto2);
-        ambientes.put(lavabo.getNome(), lavabo);
-        ambientes.put(banheiro.getNome(), banheiro);
+        ambientes.put(wc1.getNome(), wc1);
+        ambientes.put(wc2.getNome(), wc2);
         ambientes.put(salaJantar.getNome(), salaJantar);
         ambientes.put(cozinha.getNome(), cozinha);
         ambientes.put(salaTv.getNome(), salaTv);
@@ -89,15 +89,13 @@ public class Jogo {
         }
 
         conectarAmbientes(salaTv, "norte", salaJantar, "sul", "porta-tv-jantar");
-        conectarAmbientes(salaTv, "leste", areaServico, "oeste", "porta-tv-servico");
-        conectarAmbientes(quarto1, "sul", lavabo, "norte", "porta-quarto1-lavabo");
-        conectarAmbientes(lavabo, "sul", salaJantar, "norte", "porta-lavabo-jantar");
-        conectarAmbientes(lavabo, "leste", corredor, "oeste", "porta-lavabo-corredor");
-        conectarAmbientes(quarto2, "sul", banheiro, "norte", "porta-quarto2-banheiro");
-        conectarAmbientes(banheiro, "sul", cozinha, "norte", "porta-banheiro-cozinha");
-        conectarAmbientes(banheiro, "oeste", corredor, "leste", "porta-banheiro-corredor");
-        conectarAmbientes(salaJantar, "leste", cozinha, "oeste", "porta-jantar-cozinha");
         conectarAmbientes(cozinha, "sul", areaServico, "norte", "porta-cozinha-servico");
+        conectarAmbientes(corredor, "noroeste", quarto1, "leste", "porta-quarto1-corredor");
+        conectarAmbientes(corredor, "nordeste", quarto2, "oeste", "porta-quarto2-corredor");
+        conectarAmbientes(corredor, "oeste", wc1, "leste", "porta-lavabo-corredor");
+        conectarAmbientes(corredor, "leste", wc2, "oeste", "porta-banheiro-corredor");
+        conectarAmbientes(corredor, "sudoeste", salaJantar, "leste", "porta-jantar-corredor");
+        conectarAmbientes(corredor, "sudeste", cozinha, "oeste", "porta-cozinha-corredor");
 
         Ambiente ambienteTesouro = ambientes.get(configuracaoGabarito.getAmbienteTesouro());
         if (ambienteTesouro == null) {

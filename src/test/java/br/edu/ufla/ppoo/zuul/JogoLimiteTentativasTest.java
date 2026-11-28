@@ -82,7 +82,7 @@ class JogoLimiteTentativasTest {
             @Override
             public ConfiguracaoGabarito sortear(List<String> nomesAmbientes) {
                 return new ConfiguracaoGabarito("Sala de TV", "Quarto 1", "Quarto 2",
-                        "Lavabo", "Cozinha", "Sala de Jantar", 1, TENTATIVAS_INICIAIS);
+                        "WC 1", "Cozinha", "Sala de Jantar", 1, TENTATIVAS_INICIAIS);
             }
         };
         PrintStream saida = new PrintStream(mensagens, true, StandardCharsets.UTF_8);

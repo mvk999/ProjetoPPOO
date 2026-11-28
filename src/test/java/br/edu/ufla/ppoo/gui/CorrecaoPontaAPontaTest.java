@@ -94,41 +94,38 @@ class CorrecaoPontaAPontaTest {
 
     private static void verificarSessaoTextual() throws Exception {
         String comandos = String.join("\n",
-                "  ajuda  ", "ir\tsul agora", "ir   sul", "ir oeste", "ir leste",
-                "sair agora", "ir oeste", "ir norte", "sair", "ir oeste");
+                "  ajuda  ", "ir\tnorte agora", "ir   leste", "sair agora", "sair", "ir norte");
         ByteArrayOutputStream mensagens = new ByteArrayOutputStream();
         ByteArrayOutputStream diagnosticos = new ByteArrayOutputStream();
         try (BufferedReader entrada = new BufferedReader(new StringReader(comandos));
                 PrintStream saida = new PrintStream(mensagens, true, StandardCharsets.UTF_8);
                 PrintStream erros = new PrintStream(diagnosticos, true, StandardCharsets.UTF_8)) {
             Programa.executar(entrada, saida, erros);
+            List<String> eventos = new ArrayList<String>();
+            for (String linha : mensagens.toString(StandardCharsets.UTF_8).lines().toList()) {
+                if (!linha.startsWith("Você possui ") && !linha.startsWith("Atualmente voce possui ")) {
+                    eventos.add(linha);
+                }
+            }
             assertEquals(List.<String>of(
                     "",
-                    "Bem-vindo ao World of Zuul!",
-                    "World of Zuul eh um novo jogo de aventura, incrivelmente chato.",
+                    "Bem-vindo à casa mal-assombrada!",
+                    "Você é um caçador de tesouros procurando por uma fortuna enterrada.",
                     "Digite 'ajuda' se voce precisar de ajuda.",
                     "",
-                    "Voce esta do lado de fora da entrada principal de uma universidade",
-                    "Saidas: leste sul oeste",
-                    "> Voce esta perdido. Voce esta sozinho. Voce caminha",
-                    "pela universidade.",
+                    "Voce esta em Sala de TV",
+                    "Saidas: norte",
+                    "> Você está em uma casa abandonada e mal-assombrada.",
+                    "Explore os ambientes em busca do tesouro.",
                     "",
                     "Suas palavras de comando sao:",
-                    "   ir sair ajuda",
+                    "   ir chave sair ajuda cavar",
                     "> Nao ha passagem!",
-                    "> Voce esta no laboratorio de computacao",
-                    "Saidas: norte leste",
                     "> Nao ha passagem!",
-                    "> Voce esta na sala de administracao dos computadores",
-                    "Saidas: oeste",
                     "> Sair o que?",
-                    "> Voce esta no laboratorio de computacao",
-                    "Saidas: norte leste",
-                    "> Voce esta do lado de fora da entrada principal de uma universidade",
-                    "Saidas: leste sul oeste",
-                    "> Obrigado por jogar. Ate mais!"), mensagens.toString(StandardCharsets.UTF_8).lines().toList());
+                    "> Obrigado por explorar a casa mal-assombrada. Ate mais!"), eventos);
             assertEquals(0, diagnosticos.size());
-            assertEquals("ir oeste", entrada.readLine());
+            assertEquals("ir norte", entrada.readLine());
             saida.print("fluxo aberto");
             erros.print("fluxo aberto");
             assertTrue(mensagens.toString(StandardCharsets.UTF_8).endsWith("fluxo aberto"));

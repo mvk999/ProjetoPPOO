@@ -34,7 +34,10 @@ public final class Programa {
     public static void executar(BufferedReader entrada, PrintStream saida, PrintStream erros) {
         Objects.requireNonNull(entrada, "A entrada é obrigatória.");
         Objects.requireNonNull(erros, "A saída de erros é obrigatória.");
-        Jogo jogo = new Jogo(saida);
+        executar(entrada, saida, erros, new Jogo(saida));
+    }
+
+    static void executar(BufferedReader entrada, PrintStream saida, PrintStream erros, Jogo jogo) {
         Analisador analisador = new Analisador();
 
         jogo.iniciar();
