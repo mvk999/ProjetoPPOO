@@ -1,13 +1,18 @@
 package br.edu.ufla.ppoo.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridBagLayout;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 /**
  * Exibe a visão do mapa em uma janela da demonstração.
@@ -22,12 +27,13 @@ public final class JanelaSimulacao extends JFrame {
 
     /* Rótulos da GUI */
     private JLabel rotuloNumTentativasRestantes;
-   // private JLabel numTentativasRestantes;
+    private JLabel numTentativasRestantes;
     private JLabel rotuloDurabilidadeChaveMestra;
-   // private JLabel durabilidadeChaveMestra;
+    private JLabel durabilidadeChaveMestra;
     private JLabel rotuloDicasEncontradas;
     private JTextArea areaDicas;
     private JTextArea areaMensagens;
+    private JTextField campoComando;
 
     /**
      * Configura a janela na thread de eventos do Swing.
@@ -36,43 +42,97 @@ public final class JanelaSimulacao extends JFrame {
      */
     public JanelaSimulacao(Mapa mapa) {
         super("World of Zuul");
-        setSize(1000, 700);
-        setLayout(new BorderLayout());
 
-        /* Painel da Esquerda */
+        setLayout(new BorderLayout(5, 5));
+
+        /* =========================================================
+        * Painel da Esquerda */
         JPanel painelEsq = new JPanel();
         painelEsq.setLayout(new BoxLayout(painelEsq, BoxLayout.Y_AXIS));
-        painelEsq.add(rotuloNumTentativasRestantes = new JLabel("Nº de Tentativas Restantes:"));
-        rotuloNumTentativasRestantes.setFont(new Font("Arial", Font.PLAIN, 24));
-        painelEsq.add(rotuloDurabilidadeChaveMestra = new JLabel("Durabilidade da Chave Mestra:"));
-        rotuloDurabilidadeChaveMestra.setFont(new Font("Arial", Font.PLAIN, 24));
+        
+
+        rotuloNumTentativasRestantes = new JLabel("Nº de Tentativas Restantes:");
+        numTentativasRestantes = new JLabel("30");
+
+        rotuloDurabilidadeChaveMestra = new JLabel("Durabilidade da Chave Mestra:");
+        durabilidadeChaveMestra = new JLabel("10");
+
+        rotuloNumTentativasRestantes.setFont(new Font("Arial", Font.PLAIN, 16));
+        numTentativasRestantes.setFont(new Font("Arial", Font.PLAIN, 16));
+        rotuloDurabilidadeChaveMestra.setFont(new Font("Arial", Font.PLAIN, 16));
+        durabilidadeChaveMestra.setFont(new Font("Arial", Font.PLAIN, 16));
+
+        painelEsq.add(rotuloNumTentativasRestantes);
+        painelEsq.add(numTentativasRestantes);
+        painelEsq.add(javax.swing.Box.createVerticalStrut(20)); 
+        painelEsq.add(rotuloDurabilidadeChaveMestra);
+        painelEsq.add(durabilidadeChaveMestra);
+
         add(painelEsq, BorderLayout.WEST);
 
-        /* Painel do Centro */
-        JPanel painelCentral = new JPanel();
-        painelCentral.add(visaoMapa = new VisaoMapa(mapa));
+        /* =========================================================
+        * Painel Central */
+        JPanel painelCentral = new JPanel(new GridBagLayout());
+
+        visaoMapa = new VisaoMapa(mapa);
+
+        painelCentral.add(visaoMapa);
+
         add(painelCentral, BorderLayout.CENTER);
- 
-        /* Painel da Direita */
-        JPanel painelDir = new JPanel();
-        painelDir.setLayout(new BoxLayout(painelDir, BoxLayout.Y_AXIS));
-        painelDir.add(rotuloDicasEncontradas = new JLabel("Dicas Encontradas:"));
-        rotuloDicasEncontradas.setFont(new Font("Arial", Font.PLAIN, 24));
-        painelDir.add(areaDicas = new JTextArea());
-        areaDicas.setEditable(false); //não permite que o usuario edite a área
-        areaDicas.setLineWrap(true); //permite quebra de linha
-        areaDicas.setWrapStyleWord(true); //quebra de linha se chegar no limite
+
+        /* =========================================================
+        * Painel da Direita */
+        JPanel painelDir = new JPanel(new BorderLayout(5, 5));
+
+        painelDir.setBorder(BorderFactory.createTitledBorder("Dicas Encontradas"));
+
+        painelDir.setPreferredSize(new Dimension(220, 0));
+
+        areaDicas = new JTextArea();
+        areaDicas.setEditable(false);
+        areaDicas.setLineWrap(true);
+        areaDicas.setWrapStyleWord(true);
+        areaDicas.setFont(new Font("Arial", Font.PLAIN, 16));
+
+        painelDir.add(new JScrollPane(areaDicas), BorderLayout.CENTER);
 
         add(painelDir, BorderLayout.EAST);
 
-        /* Painel Inferior */
-        JPanel painelInf = new JPanel();
+        /* =========================================================
+        * Painel Inferior */
+        JPanel painelInf = new JPanel(new BorderLayout(5, 5));
+
+        painelInf.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
+        painelInf.setPreferredSize(new Dimension(0, 160));
+
+        areaMensagens = new JTextArea();
+        areaMensagens.setEditable(false);
+        areaMensagens.setLineWrap(true);
+        areaMensagens.setWrapStyleWord(true);
+        areaMensagens.setFont(new Font("Arial", Font.PLAIN, 14));
+
+        JScrollPane rolagemMensagens = new JScrollPane(areaMensagens);
+
+        painelInf.add(rolagemMensagens, BorderLayout.CENTER);
+
+        JPanel painelComando = new JPanel(new BorderLayout(5, 5));
+
+        JLabel indicadorComando = new JLabel(">");
+
+        campoComando = new JTextField();
+
+        painelComando.add(indicadorComando, BorderLayout.WEST);
+        painelComando.add(campoComando, BorderLayout.CENTER);
+
+        painelInf.add(painelComando, BorderLayout.SOUTH);
 
         add(painelInf, BorderLayout.SOUTH);
-        
+
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
         pack();
+        setLocationRelativeTo(null);
     }
 
     /**
